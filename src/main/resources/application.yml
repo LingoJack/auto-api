@@ -1,0 +1,4 @@
+lingo-util:
+  auto-api:
+    output-path: ./
+    enable: true
