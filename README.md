@@ -50,9 +50,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan(basePackages = "org.lingoutil.autoapi")
 public class AppConfig {
-    @Bean
-    public ApiInitializer apiInitializer() {
-        return new ApiInitializer();
-    }
+    
 }
 ~~~
