@@ -5,6 +5,7 @@ import org.lingoutil.autoapi.annotation.GenerateApi;
 import org.lingoutil.autoapi.config.ApiConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -37,12 +38,15 @@ public class ApiInitializer implements ApplicationListener<ContextRefreshedEvent
 
         ArrayList<Class<?>> classArrayList = new ArrayList<>();
         for (String controllerBeanName : controllerBeanNames) {
-            logger.info("autoAPI found controller ：{} ", controllerBeanName);
-            Class<?> aClass = context.getBean(controllerBeanName).getClass();
+            logger.info("autoAPI found controller: {} ", controllerBeanName);
+            Class<?> beanClass = context.getBean(controllerBeanName).getClass();
+
+            // 获取目标类（即原始类，不论是否被代理）
+            Class<?> targetClass = AopUtils.getTargetClass(context.getBean(controllerBeanName));
 
             // 判断该类是否有GenerateApi注解且enable属性为true，是则加入list
-            if (aClass.isAnnotationPresent(GenerateApi.class) && aClass.getAnnotation(GenerateApi.class).enabled()) {
-                classArrayList.add(aClass);
+            if (targetClass.isAnnotationPresent(GenerateApi.class) && targetClass.getAnnotation(GenerateApi.class).enabled()) {
+                classArrayList.add(targetClass);
             }
         }
 

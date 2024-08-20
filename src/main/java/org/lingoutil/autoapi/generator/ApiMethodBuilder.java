@@ -17,6 +17,8 @@ import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 生成 API 方法的前端 JavaScript 代码的类。
@@ -39,6 +41,8 @@ public class ApiMethodBuilder {
      * @param clazz 要处理的 Controller 类
      */
     public void execute(Class<?> clazz) {
+        logger.info("autoAPI generates api file for controller: {}", clazz.getSimpleName());
+
         // 获取 API 文件的名称和路径
         int beginIndex = clazz.getName().lastIndexOf('.') + 1;
         String apiFileName = clazz.getName().substring(beginIndex).replace("Controller", "Api");
@@ -355,7 +359,30 @@ public class ApiMethodBuilder {
      * @param indent         缩进字符
      * @throws IOException 文件操作异常
      */
+    // 递归写入对象字段的 JSON 格式数据注释。
     private static void writeObjectFields(BufferedWriter bufferedWriter, Class<?> clazz, String indent) throws IOException {
+        Set<Class<?>> visitedClasses = new HashSet<>();
+        writeObjectFields(bufferedWriter, clazz, indent, visitedClasses);
+    }
+
+    private static void writeObjectFields(BufferedWriter bufferedWriter, Class<?> clazz, String indent, Set<Class<?>> visitedClasses) throws IOException {
+        // 如果该类是枚举，直接跳过
+        if (clazz.isEnum()) {
+            bufferedWriter.write(indent + "\" 枚举类已跳过 \"");
+            bufferedWriter.newLine();
+            return;
+        }
+
+        // 如果该类已经处理过，直接返回，防止无限递归
+        if (visitedClasses.contains(clazz)) {
+            bufferedWriter.write(indent + "\" 检测到递归 \"*/");
+            bufferedWriter.newLine();
+            return;
+        }
+
+        // 将当前类标记为已处理
+        visitedClasses.add(clazz);
+
         // 获取所有的字段
         java.lang.reflect.Field[] fields = clazz.getDeclaredFields();
 
@@ -368,14 +395,17 @@ public class ApiMethodBuilder {
                 // 如果是自定义对象则递归调用解析写入
                 bufferedWriter.write(String.format("%s%s: {", indent, fieldName));
                 bufferedWriter.newLine();
-                writeObjectFields(bufferedWriter, fieldType, indent + "\t");
+                writeObjectFields(bufferedWriter, fieldType, indent + "\t", visitedClasses);
                 bufferedWriter.write(indent + "},");
             }
             else {
-                // 如果是非自定义对象，则写入
+                // 如果是非自定义对象，则直接写入
                 bufferedWriter.write(String.format("%s%s: %s,", indent, fieldName, fieldType.getSimpleName()));
             }
             bufferedWriter.newLine();
         }
+
+        // 递归处理完当前类后，从已处理集合中移除
+        visitedClasses.remove(clazz);
     }
 }
