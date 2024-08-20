@@ -1,6 +1,9 @@
 package org.lingoutil.autoapi.generator;
 
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.lingoutil.autoapi.annotation.AutoApi;
 import org.lingoutil.autoapi.config.ApiConfiguration;
 import org.lingoutil.autoapi.util.FileUtils;
@@ -306,6 +309,13 @@ public class ApiMethodBuilder {
         // 写入参数列表
         for (int i = 0; i < parameterTypes.length; i++) {
             Class<?> parameterType = parameterTypes[i];
+
+            // 跳过 Response, Session, Request 类型的参数
+            if (HttpServletRequest.class.isAssignableFrom(parameterType)
+                    || HttpServletResponse.class.isAssignableFrom(parameterType)
+                    || HttpSession.class.isAssignableFrom(parameterType)) {
+                continue;
+            }
 
             boolean isRequestBody = false;
             for (Annotation annotation : parameterAnnotations[i]) {
