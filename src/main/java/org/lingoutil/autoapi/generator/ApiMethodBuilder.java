@@ -97,7 +97,7 @@ public class ApiMethodBuilder {
     private static void generateApiMethod(Class<?> clazz, BufferedWriter bufferedWriter) throws IOException {
         // 获取类上的 RequestMapping 注解
         RequestMapping requestMappingAnnotation = clazz.getAnnotation(RequestMapping.class);
-        String[] requestPathArray = requestMappingAnnotation.value();
+        String[] requestPathArray = requestMappingAnnotation == null ? new String[]{""} : requestMappingAnnotation.value();
         String controllerPath = FileUtils.guaranteeStartWithSlash(requestPathArray[0]);
 
         // 获取类中的所有声明的方法
@@ -107,7 +107,8 @@ public class ApiMethodBuilder {
             if (method.isAnnotationPresent(AutoApi.class)) {
                 // 获取方法上的 RequestMapping 注解
                 RequestMapping methodRequestMappingAnnotation = method.getAnnotation(RequestMapping.class);
-                String methodPath = FileUtils.guaranteeStartWithSlash(methodRequestMappingAnnotation.value()[0]);
+                String[] value = methodRequestMappingAnnotation == null ? new String[]{""} : methodRequestMappingAnnotation.value();
+                String methodPath = FileUtils.guaranteeStartWithSlash(value[0]);
 
                 // 获取 AutoApi 注解，并处理未指定的属性
                 AutoApi autoApiAnnotation = method.getAnnotation(AutoApi.class);
