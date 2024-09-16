@@ -25,7 +25,7 @@ lingo-util:
 
 
 
-maven依赖：（目前还未上传至远程仓库 2024.8.19）
+maven依赖：（现已上传至maven远程仓库）
 
 ~~~xml
 <dependency>
